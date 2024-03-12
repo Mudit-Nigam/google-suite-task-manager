@@ -1,0 +1,6 @@
+pytest==6.2.5
+ruff==0.2.1
+mypy==1.8.0
+coverage==6.0.2
+requests==2.26.0
+flask==2.1.1
