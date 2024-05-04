@@ -7,6 +7,13 @@ authors = [
 ]
 dependencies = [
     "pytest>=8.0.0",
+    "python-dotenv>=1.0.1",
+    "flask-WTF>=1.2.1",
+    "Flask>=3.0.3",
+    "pymongo>=4.7.1",
+    "Flask-PyMongo>=2.3.0",
+    "types-WTForms>=3.1.0.20240425",
+    "types-Flask>=1.1.6",
 ]
 requires-python = ">=3.11"
 readme = "README.md"

@@ -1,0 +1,4 @@
+packages = [
+  {include = "flask_wtf"},
+  {include = "flask_wtf/py.typed"},
+]
