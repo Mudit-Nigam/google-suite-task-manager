@@ -32,6 +32,10 @@
    pdm run ruff format .
    pdm run ruff --fix 
    ```
+7. Run the app
+   ```
+   flask run
+   ```
 ---
 ### Features :
 * Programming language - Python
