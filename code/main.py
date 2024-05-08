@@ -71,7 +71,41 @@ def login():
     session["state"] = state
     return redirect(authorization_url)
 
-# Remaining routes...
+@app.route("/callback")
+def callback():
+    flow.fetch_token(authorization_response=request.url)
+
+    if not session["state"] == request.args["state"]:
+        abort(500)  # State does not match!
+
+    credentials = flow.credentials
+    id_token_info = id_token.verify_oauth2_token(
+        credentials.id_token,
+        google.auth.transport.requests.Request(),
+        GOOGLE_CLIENT_ID
+    )
+
+    session["google_id"] = id_token_info.get("sub")
+    session["credentials"] = credentials.to_json()
+    session["name"] = id_token_info.get("name")
+    return redirect("/protected_area")
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+
+@app.route("/")
+def index():
+    return render_template('index.html')
+
+@app.route("/protected_area")
+def protected_area():
+    if "google_id" not in session:
+        return abort(401)  # Authorization required
+    
+    name = session.get('name', 'Guest')  # Default value 'Guest' if 'name' key is not found
+    return render_template('protected_area.html', name=name)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
