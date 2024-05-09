@@ -60,10 +60,53 @@ def add_task():
         }
 
         result = service.tasks().insert(tasklist='@default', body=task).execute()
-        return jsonify({"success": True, "task": result})
+        task_id = result.get('id')
+        return jsonify({"success": True, "task": {"id": task_id, "title": task_title}})
     except Exception as e:
         logging.error("Error adding task: %s", e)
         return jsonify({"error": "Failed to add task"}), 500
+
+@app.route("/list_tasks")
+def list_tasks():
+    try:
+        if "credentials" not in session:
+            return jsonify({"error": "User credentials not found"}), 401
+
+        credentials = Credentials.from_authorized_user_info(json.loads(session["credentials"]))
+
+        service = build('tasks', 'v1', credentials=credentials)
+
+        # Example: Retrieve tasks from Google Tasks API
+        tasks_result = service.tasks().list(tasklist='@default').execute()
+        tasks = tasks_result.get('items', [])  # Extract tasks from response
+
+        # Format tasks into a list of dictionaries
+        formatted_tasks = [{"id": task['id'], "title": task['title']} for task in tasks]
+
+        return jsonify(formatted_tasks)
+    except Exception as e:
+        logging.error("Error listing tasks: %s", e)
+        return jsonify({"error": "Failed to list tasks"}), 500
+
+@app.route("/delete_task", methods=["POST"])
+def delete_task():
+    try:
+        task_id = request.form.get("id")
+        if not task_id:
+            return jsonify({"error": "Task ID is required"}), 400
+
+        if "credentials" not in session:
+            return jsonify({"error": "User credentials not found"}), 401
+
+        credentials = Credentials.from_authorized_user_info(json.loads(session["credentials"]))
+
+        service = build('tasks', 'v1', credentials=credentials)
+
+        service.tasks().delete(tasklist='@default', task=task_id).execute()
+        return jsonify({"success": True})
+    except Exception as e:
+        logging.error("Error deleting task: %s", e)
+        return jsonify({"error": "Failed to delete task"}), 500
 
 @app.route("/login")
 def login():
@@ -82,7 +125,8 @@ def callback():
     id_token_info = id_token.verify_oauth2_token(
         credentials.id_token,
         google.auth.transport.requests.Request(),
-        GOOGLE_CLIENT_ID
+        GOOGLE_CLIENT_ID,
+        clock_skew_in_seconds=10
     )
 
     session["google_id"] = id_token_info.get("sub")
@@ -105,7 +149,7 @@ def protected_area():
         return abort(401)  # Authorization required
     
     name = session.get('name', 'Guest')  # Default value 'Guest' if 'name' key is not found
-    return render_template('protected_area.html', name=name)
+    return render_template('protected_area 2.html', name=name)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
