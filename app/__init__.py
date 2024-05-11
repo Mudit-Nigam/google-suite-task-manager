@@ -162,3 +162,67 @@ def protected_area() -> str:
         return abort(401)  # Authorization required
     name = session.get("name", "Guest")  # Default value 'Guest' if 'name' key is not found
     return render_template("protected_area.html", name=name)
+
+@app.route("/list_comments")
+def list_comments() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
+    try:
+        if "credentials" not in session:
+            return jsonify({"error": "User credentials not found"}), 401
+        credentials = Credentials.from_authorized_user_info(json.loads(session["credentials"]))
+        service = build("drive", "v3", credentials=credentials)
+        userinfo_service = build('oauth2', 'v2', credentials=credentials)
+        user_info = userinfo_service.userinfo().get().execute()
+        your_email = user_info.get('email')
+        print(f"Fetching comments for {your_email}")
+        # Retrieve files from Google Drive API
+        all_files = []
+        page_token = None
+        while True:
+            response = service.files().list(
+                pageSize=100,  # Adjust pageSize as needed
+                fields="nextPageToken, files(id, name, mimeType)",
+                pageToken=page_token # type: ignore
+            ).execute()            
+            all_files.extend(response.get('files', []))
+            page_token = response.get('nextPageToken')
+
+            if not page_token:
+                break
+        # Retrieve comments from Google Drive API
+        result = []
+        for file in all_files:
+            if 'google-apps' in file['mimeType']:  # Checking if the file type supports comments
+                comments = service.comments().list(
+                    fileId=file['id'],
+                    fields="comments(author(displayName), content, deleted, resolved)"  # Include 'deleted' and 'resolved' fields
+                ).execute()
+                file_comments = comments.get('comments', [])
+                relevant_comments = [
+                    comment for comment in file_comments 
+                    if your_email in comment['content'] and not comment.get('deleted') and not comment.get('resolved') # type: ignore
+                ]
+                relevant_comments = [{"author": comment["author"]['displayName'], "file": file['name'], "content": comment["content"]} for comment in relevant_comments] # type: ignore
+                if relevant_comments:
+                    for comment in relevant_comments:
+                        # print(f"- {comment['content']} (Author: {comment['author']})")
+                        result.append(comment)
+                else:
+                    print(f"No relevant comments for {file['name']} ({file['id']}).")
+            else:
+                print(f"File type of {file['name']} ({file['id']}) does not support comments.")
+        print(result)
+        return(jsonify(result)) 
+
+        '''
+        comments_result = service.comments().list().execute()
+        comments = comments_result.get("comments", [])  # Extract comments from response
+        print(comments)
+        # Filter comments assigned to the user
+        assigned_comments = [comment for comment in comments if comment["assignedToMe"]]
+        # Format comments into a list of dictionaries
+        formatted_comments = [{"id": comment["id"], "content": comment["content"]} for comment in assigned_comments]
+        return jsonify(formatted_comments)
+        '''
+    except Exception as e:
+        logging.error("Error listing comments: %s", e)
+        return jsonify({"error": "Failed to list comments"}), 500
