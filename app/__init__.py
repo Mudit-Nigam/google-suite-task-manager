@@ -3,6 +3,7 @@ import logging
 import os
 import pathlib
 from typing import Dict, Union
+from datetime import datetime
 
 import flask.wrappers as wrappers
 import google.auth.transport.requests
@@ -57,8 +58,13 @@ flow = Flow.from_client_config(
 def add_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
     try:
         task_title = request.form.get("title")
+        task_deadline = request.form.get("deadline")
+
         if not task_title:
             return jsonify({"error": "Task title is required"}), 400
+
+        if not task_deadline:
+            return jsonify({"error": "Task deadline is required"}), 400
 
         if "credentials" not in session or not session["credentials"]:
             return jsonify({"error": "User credentials not found"}), 401
@@ -68,6 +74,8 @@ def add_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
         service = build("tasks", "v1", credentials=credentials)
 
         task = {"title": task_title}
+        if task_deadline:
+            task["due"] = datetime.strptime(task_deadline, "%Y-%m-%dT%H:%M").isoformat() + "Z"
 
         result = service.tasks().insert(tasklist="@default", body=task).execute()  # type: ignore
         return jsonify({"success": True, "task": result})
