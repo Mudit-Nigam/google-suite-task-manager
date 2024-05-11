@@ -2,8 +2,9 @@ import json
 import logging
 import os
 import pathlib
-from typing import Any, Union
+from typing import Dict, Union
 
+import flask.wrappers as wrappers
 import google.auth.transport.requests
 import requests
 from dotenv import load_dotenv
@@ -45,19 +46,21 @@ flow = Flow.from_client_config(
         "https://www.googleapis.com/auth/userinfo.profile",
         "https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/tasks",
+        "https://www.googleapis.com/auth/documents.readonly",
+        "https://www.googleapis.com/auth/drive.readonly",
     ],
     redirect_uri="http://127.0.0.1:5000/callback",
 )
 
 
 @app.route("/add_task", methods=["POST"])
-def add_task() -> Any:
+def add_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
     try:
         task_title = request.form.get("title")
         if not task_title:
             return jsonify({"error": "Task title is required"}), 400
 
-        if "credentials" not in session:
+        if "credentials" not in session or not session["credentials"]:
             return jsonify({"error": "User credentials not found"}), 401
 
         credentials = Credentials.from_authorized_user_info(json.loads(session["credentials"]))
@@ -71,6 +74,50 @@ def add_task() -> Any:
     except Exception as e:
         logging.error("Error adding task: %s", e)
         return jsonify({"error": "Failed to add task"}), 500
+
+
+@app.route("/list_tasks")
+def list_tasks() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
+    try:
+        if "credentials" not in session:
+            return jsonify({"error": "User credentials not found"}), 401
+
+        credentials = Credentials.from_authorized_user_info(json.loads(session["credentials"]))
+
+        service = build("tasks", "v1", credentials=credentials)
+
+        # Example: Retrieve tasks from Google Tasks API
+        tasks_result = service.tasks().list(tasklist="@default").execute()
+        tasks = tasks_result.get("items", [])  # Extract tasks from response
+
+        # Format tasks into a list of dictionaries
+        formatted_tasks = [{"id": task["id"], "title": task["title"]} for task in tasks]
+
+        return jsonify(formatted_tasks)
+    except Exception as e:
+        logging.error("Error listing tasks: %s", e)
+        return jsonify({"error": "Failed to list tasks"}), 500
+
+
+@app.route("/delete_task", methods=["POST"])
+def delete_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
+    try:
+        task_id = request.form.get("id")
+        if not task_id:
+            return jsonify({"error": "Task ID is required"}), 400
+
+        if "credentials" not in session:
+            return jsonify({"error": "User credentials not found"}), 401
+
+        credentials = Credentials.from_authorized_user_info(json.loads(session["credentials"]))
+
+        service = build("tasks", "v1", credentials=credentials)
+
+        service.tasks().delete(tasklist="@default", task=task_id).execute()
+        return jsonify({"success": True})
+    except Exception as e:
+        logging.error("Error deleting task: %s", e)
+        return jsonify({"error": "Failed to delete task"}), 500
 
 
 @app.route("/login")
@@ -89,7 +136,7 @@ def callback() -> Response:
 
     credentials = flow.credentials
     id_token_info = id_token.verify_oauth2_token(
-        credentials.id_token, google.auth.transport.requests.Request(), GOOGLE_CLIENT_ID
+        credentials.id_token, google.auth.transport.requests.Request(), GOOGLE_CLIENT_ID, clock_skew_in_seconds=10
     )
 
     session["google_id"] = id_token_info.get("sub")

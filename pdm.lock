@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:d4b6704379ad5ee7f4395256465cd081e1357cd76d6ff0c3f82481c119536a44"
+content_hash = "sha256:2f607e2efb9dfa1b32c2ba02f73d003f3233ae8cd00fc2e5f4f9844fde28d724"
 
 [[package]]
 name = "beautifulsoup4"
@@ -566,6 +566,36 @@ files = [
 ]
 
 [[package]]
+name = "pytest-flask"
+version = "1.3.0"
+requires_python = ">=3.7"
+summary = "A set of py.test fixtures to test Flask applications."
+groups = ["default"]
+dependencies = [
+    "Flask",
+    "Werkzeug",
+    "pytest>=5.2",
+]
+files = [
+    {file = "pytest-flask-1.3.0.tar.gz", hash = "sha256:58be1c97b21ba3c4d47e0a7691eb41007748506c36bf51004f78df10691fa95e"},
+    {file = "pytest_flask-1.3.0-py3-none-any.whl", hash = "sha256:c0e36e6b0fddc3b91c4362661db83fa694d1feb91fa505475be6732b5bc8c253"},
+]
+
+[[package]]
+name = "pytest-mock"
+version = "3.14.0"
+requires_python = ">=3.8"
+summary = "Thin-wrapper around the mock package for easier use with pytest"
+groups = ["default"]
+dependencies = [
+    "pytest>=6.2.5",
+]
+files = [
+    {file = "pytest-mock-3.14.0.tar.gz", hash = "sha256:2719255a1efeceadbc056d6bf3df3d1c5015530fb40cf347c0f9afac88410bd0"},
+    {file = "pytest_mock-3.14.0-py3-none-any.whl", hash = "sha256:0b72c38033392a5f4621342fe11e9219ac11ec9d375f8e2a0c164539e0d70f6f"},
+]
+
+[[package]]
 name = "python-dotenv"
 version = "1.0.1"
 requires_python = ">=3.8"
@@ -660,6 +690,28 @@ files = [
 ]
 
 [[package]]
+name = "types-colorama"
+version = "0.4.15.20240311"
+requires_python = ">=3.8"
+summary = "Typing stubs for colorama"
+groups = ["default"]
+files = [
+    {file = "types-colorama-0.4.15.20240311.tar.gz", hash = "sha256:a28e7f98d17d2b14fb9565d32388e419f4108f557a7d939a66319969b2b99c7a"},
+    {file = "types_colorama-0.4.15.20240311-py3-none-any.whl", hash = "sha256:6391de60ddc0db3f147e31ecb230006a6823e81e380862ffca1e4695c13a0b8e"},
+]
+
+[[package]]
+name = "types-docutils"
+version = "0.21.0.20240423"
+requires_python = ">=3.8"
+summary = "Typing stubs for docutils"
+groups = ["default"]
+files = [
+    {file = "types-docutils-0.21.0.20240423.tar.gz", hash = "sha256:7716ec6c68b5179b7ba1738cace2f1326e64df9f44b7ab08d9904d32c23fc15f"},
+    {file = "types_docutils-0.21.0.20240423-py3-none-any.whl", hash = "sha256:7f6e84ba8fcd2454c5b8bb8d77384d091a901929cc2b31079316e10eb346580a"},
+]
+
+[[package]]
 name = "types-httplib2"
 version = "0.22.0.20240310"
 requires_python = ">=3.8"
@@ -668,6 +720,21 @@ groups = ["default"]
 files = [
     {file = "types-httplib2-0.22.0.20240310.tar.gz", hash = "sha256:1eda99fea18ec8a1dc1a725ead35b889d0836fec1b11ae6f1fe05440724c1d15"},
     {file = "types_httplib2-0.22.0.20240310-py3-none-any.whl", hash = "sha256:8cd706fc81f0da32789a4373a28df6f39e9d5657d1281db4d2fd22ee29e83661"},
+]
+
+[[package]]
+name = "types-pygments"
+version = "2.18.0.20240506"
+requires_python = ">=3.8"
+summary = "Typing stubs for Pygments"
+groups = ["default"]
+dependencies = [
+    "types-docutils",
+    "types-setuptools",
+]
+files = [
+    {file = "types-Pygments-2.18.0.20240506.tar.gz", hash = "sha256:4b4c37812c87bbde687dbf27adf5bac593745a321e57f678dbc311571ba2ac9d"},
+    {file = "types_Pygments-2.18.0.20240506-py3-none-any.whl", hash = "sha256:11c90bc1737c9af55e5569558b88df7c2233e12325cb516215f722271444e91d"},
 ]
 
 [[package]]
@@ -682,6 +749,17 @@ dependencies = [
 files = [
     {file = "types-requests-2.31.0.20240406.tar.gz", hash = "sha256:4428df33c5503945c74b3f42e82b181e86ec7b724620419a2966e2de604ce1a1"},
     {file = "types_requests-2.31.0.20240406-py3-none-any.whl", hash = "sha256:6216cdac377c6b9a040ac1c0404f7284bd13199c0e1bb235f4324627e8898cf5"},
+]
+
+[[package]]
+name = "types-setuptools"
+version = "69.5.0.20240423"
+requires_python = ">=3.8"
+summary = "Typing stubs for setuptools"
+groups = ["default"]
+files = [
+    {file = "types-setuptools-69.5.0.20240423.tar.gz", hash = "sha256:a7ba908f1746c4337d13f027fa0f4a5bcad6d1d92048219ba792b3295c58586d"},
+    {file = "types_setuptools-69.5.0.20240423-py3-none-any.whl", hash = "sha256:a4381e041510755a6c9210e26ad55b1629bc10237aeb9cb8b6bd24996b73db48"},
 ]
 
 [[package]]
