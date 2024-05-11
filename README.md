@@ -31,6 +31,10 @@
    pdm run ruff check .
    pdm run ruff format .
    ```
+7. Run app
+   ```
+   pdm run flask run
+   ```
 ---
 ### Features :
 * Programming language - Python
