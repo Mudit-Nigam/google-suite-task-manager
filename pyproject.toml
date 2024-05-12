@@ -21,6 +21,10 @@ dependencies = [
     "pytest-mock>=3.14.0",
     "types-Pygments>=2.18.0.20240506",
     "types-setuptools>=69.5.0.20240423",
+    "datetime>=5.5",
+    "logging>=0.4.9.6",
+    "pathlib>=1.0.1",
+    "typing>=3.7.4.3",
 ]
 requires-python = ">=3.11"
 readme = "README.md"

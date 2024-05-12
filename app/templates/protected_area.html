@@ -12,6 +12,7 @@
     <h1>Add Task</h1>
     <form id="addTaskForm">
         <input type="text" id="taskTitle" name="title" placeholder="Task Title">
+        <input type="date" id="taskDue" name="due" placeholder="Enter the due date">
         <button type="submit">Add Task</button>
     </form>
     
@@ -21,24 +22,30 @@
     <h1>Delete Tasks</h1>
     <ul id="taskList"></ul>
 
+    <h1>Fetch Comments</h1>
+    <button id="fetchCommentsButton">Fetch Comments</button>
+
+    <h1>Comment List</h1>
+    <ul id="commentList"></ul>
+
     <script>
         document.getElementById("addTaskForm").addEventListener("submit", function(event) {
             event.preventDefault();
             const taskTitle = document.getElementById("taskTitle").value;
-            addTask(taskTitle);
+            const dtt = document.getElementById('taskDue').value;
+            addTask(taskTitle, dtt);
         });
 
-        async function addTask(title) {
+        async function addTask(title, dtt) {
             try {
                 const response = await fetch("/add_task", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded"
                     },
-                    body: `title=${encodeURIComponent(title)}`
+                    body: `title=${encodeURIComponent(title)}&due=${encodeURIComponent(dtt)}`
                 });
                 const data = await response.json();
-                console.log(data);
                 // Handle response data as needed
             } catch (error) {
                 console.error("Error adding task:", error);
@@ -54,7 +61,14 @@
                 taskList.innerHTML = ""; // Clear previous tasks
                 tasks.forEach(task => {
                     const li = document.createElement("li");
-                    li.textContent = `${task.title} (ID: ${task.id})`;
+                    if (task.due != null) {
+                        const taskDue = new Date(task.due);
+                        const localDueDate = new Date(taskDue.getTime() + taskDue.getTimezoneOffset() * 60000);
+                        const formattedDueDate = localDueDate.toLocaleDateString('en-US');
+                        li.textContent = `Task Name: ${task.title} (Due: ${formattedDueDate})`;
+                    } else{
+                        li.textContent = `Task Name: ${task.title}`;
+                    }
                     const deleteButton = document.createElement("button");
                     deleteButton.textContent = "Delete";
                     deleteButton.addEventListener("click", () => deleteTask(task.id));
@@ -63,6 +77,24 @@
                 });
             } catch (error) {
                 console.error("Error fetching tasks:", error);
+            }
+        }
+
+        // Function to comments
+        async function fetchComments() {
+            try {
+                console.debug("HELLO")
+                const response = await fetch("/list_comments");
+                const comments = await response.json();
+                const commentList = document.getElementById("commentList");
+                commentList.innerHTML = ""; // Clear previous comments
+                comments.forEach(comment => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `Task: ${comment.filtered_content} | Author: ${comment.author} | File: ${comment.file} | Link: <a href="${comment.link}" target="_blank">Link</a>`;
+                    commentList.appendChild(li);
+                });
+            } catch (error) {
+                console.error("Error fetching comments:", error);
             }
         }
 
@@ -89,9 +121,11 @@
 
         // Attach event listener to Fetch Tasks button
         document.getElementById("fetchTasksButton").addEventListener("click", fetchTasks);
+        document.getElementById("fetchCommentsButton").addEventListener("click", fetchComments);
 
-        // Fetch tasks when the page loads
+        // Fetch tasks and comments when the page loads
         fetchTasks();
+        fetchComments();
     </script>
 </body>
 </html>

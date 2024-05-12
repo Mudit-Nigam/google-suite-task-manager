@@ -67,7 +67,7 @@ def test_add_task_successful(client: FlaskClient) -> None:
 
         # Verify that the API was called as expected
         mock_build.assert_called_once_with("tasks", "v1", credentials=ANY)
-        mock_tasks.insert.assert_called_once_with(tasklist="@default", body={"title": "New Task"})
+        mock_tasks.insert.assert_called_once_with(tasklist="@default", body={"title": "New Task", "due": None})
         mock_insert.execute.assert_called_once()
 
 
