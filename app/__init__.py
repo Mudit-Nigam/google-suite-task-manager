@@ -15,7 +15,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow  # type: ignore
 from googleapiclient.discovery import build
 from werkzeug.wrappers import Response
-
+from .database import * 
 
 load_dotenv()
 
@@ -57,8 +57,9 @@ flow = Flow.from_client_config(
 @app.route("/add_task", methods=["POST"])
 def add_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
     try:
+        mydb = get_database()
         task_title = request.form.get("title")
-        task_details = request.form.get("details")
+        task_notes = request.form.get("notes")
         task_due = request.form.get("due")
 
         if not task_title:
@@ -70,21 +71,27 @@ def add_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
         credentials = Credentials.from_authorized_user_info(json.loads(session["credentials"]))
 
         service = build("tasks", "v1", credentials=credentials)
+        userinfo_service = build("oauth2", "v2", credentials=credentials)
+        user_info = userinfo_service.userinfo().get().execute()
+        your_email = user_info.get("email")
+        
         if task_due:
             task_due = task_due + "T23:59"
             date = datetime.strptime(task_due, "%Y-%m-%dT%H:%M").isoformat() + "Z"
             task = (
-                {"title": task_title, "notes": task_details, "due": date}
-                if task_details
-                else {"title": task_title, "notes": None, "due": date}  # type: ignore
+                {"title": task_title, "notes": task_notes, "due": date}
+                if task_notes
+                else {"title": task_title, "notes": "None", "due": date}  # type: ignore
             )
         else:
             task = (
-                {"title": task_title, "notes": task_details, "due": None}  # type: ignore
-                if task_details
+                {"title": task_title, "notes": task_notes, "due": None}  # type: ignore
+                if task_notes
                 else {"title": task_title, "notes": None, "due": None}  # type: ignore
             )
         result = service.tasks().insert(tasklist="@default", body=task).execute()  # type: ignore
+        add_task_db(mydb, result["id"], result["title"], task["notes"], task["due"], your_email)
+        print(result)
         return jsonify({"success": True, "task": result})
     except Exception as e:
         logging.error("Error adding task: %s", e)
@@ -94,29 +101,24 @@ def add_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
 @app.route("/list_tasks")
 def list_tasks() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
     try:
+        mydb = get_database()
         if "credentials" not in session:
             return jsonify({"error": "User credentials not found"}), 401
 
         credentials = Credentials.from_authorized_user_info(json.loads(session["credentials"]))
 
         service = build("tasks", "v1", credentials=credentials)
+        userinfo_service = build("oauth2", "v2", credentials=credentials)
+        user_info = userinfo_service.userinfo().get().execute()
+        your_email = user_info.get("email")
 
         # Example: Retrieve tasks from Google Tasks API
         tasks_result = service.tasks().list(tasklist="@default").execute()
-        tasks = tasks_result.get("items", [])  # Extract tasks from response
+        tasks = tasks_result.get("items", []) 
+        update_task_db(mydb, tasks, your_email)
 
-        # Format tasks into a list of dictionaries
-        formatted_tasks = [
-            {"id": task["id"], "title": task["title"], "details": task.get("notes"), "due": task["due"]}
-            if task.get("due") and task.get("notes")
-            else {"id": task["id"], "title": task["title"], "details": task.get("notes")}
-            if task.get("notes")
-            else {"id": task["id"], "title": task["title"], "due": task.get("due")}
-            if task.get("due")
-            else {"id": task["id"], "title": task["title"]}
-            for task in tasks
-        ]
-        return jsonify(formatted_tasks)
+        # Extract tasks from response
+        return jsonify(tasks)
     except Exception as e:
         logging.error("Error listing tasks: %s", e)
         return jsonify({"error": "Failed to list tasks"}), 500
@@ -125,6 +127,7 @@ def list_tasks() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
 @app.route("/delete_task", methods=["POST"])
 def delete_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
     try:
+        mydb = get_database()
         task_id = request.form.get("id")
         if not task_id:
             return jsonify({"error": "Task ID is required"}), 400
@@ -135,8 +138,11 @@ def delete_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
         credentials = Credentials.from_authorized_user_info(json.loads(session["credentials"]))
 
         service = build("tasks", "v1", credentials=credentials)
-
+        userinfo_service = build("oauth2", "v2", credentials=credentials)
+        user_info = userinfo_service.userinfo().get().execute()
+        your_email = user_info.get("email")
         service.tasks().delete(tasklist="@default", task=task_id).execute()
+        delete_task_db(mydb, task_id, your_email)
         return jsonify({"success": True})
     except Exception as e:
         logging.error("Error deleting task: %s", e)
@@ -236,6 +242,7 @@ def list_comments() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
                 relevant_comments = [
                     {
                         "id": comment["id"],
+                        "user": your_email,
                         "author": comment["author"]["displayName"],  # type: ignore
                         "filtered_content": comment["content"].replace("@" + your_email, ""),
                         "file": file["name"],

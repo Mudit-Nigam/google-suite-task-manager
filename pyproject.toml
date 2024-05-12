@@ -25,6 +25,7 @@ dependencies = [
     "logging>=0.4.9.6",
     "pathlib>=1.0.1",
     "typing>=3.7.4.3",
+    "pymongo>=4.7.2",
 ]
 requires-python = ">=3.11"
 readme = "README.md"
