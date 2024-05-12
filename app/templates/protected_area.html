@@ -57,6 +57,8 @@
         <h1>Add Task</h1>
         <form id="addTaskForm">
             <input type="text" id="taskTitle" name="title" placeholder="Task Title">
+            <input type="text" id="taskDetails" name="details" placeholder="Task Details">
+            <input type="date" id="taskDue" name="due" placeholder="Enter the due date">
             <button type="submit">Add Task</button>
         </form>
         
@@ -77,21 +79,26 @@
     <script>
         document.getElementById("addTaskForm").addEventListener("submit", function(event) {
             event.preventDefault();
-            const taskTitle = document.getElementById("taskTitle").value;
-            addTask(taskTitle);
+            const title = document.getElementById("taskTitle").value;
+            const details = document.getElementById("taskDetails").value;
+            const dtt = document.getElementById('taskDue').value;
+            addTask(title, details, dtt);
+            // Clearing the input fields
+            taskTitle.value = "";
+            taskDetails.value = "";
+            taskDue.value = "";
         });
 
-        async function addTask(title) {
+        async function addTask(title, details, dtt) {
             try {
                 const response = await fetch("/add_task", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded"
                     },
-                    body: `title=${encodeURIComponent(title)}`
+                    body: `title=${encodeURIComponent(title)}&details=${encodeURIComponent(details)}&due=${encodeURIComponent(dtt)}`
                 });
                 const data = await response.json();
-                console.log(data);
                 // Handle response data as needed
             } catch (error) {
                 console.error("Error adding task:", error);
@@ -107,7 +114,17 @@
                 taskList.innerHTML = ""; // Clear previous tasks
                 tasks.forEach(task => {
                     const li = document.createElement("li");
-                    li.textContent = `${task.title} (ID: ${task.id})`;
+                    if (task.due != null) {
+                        const taskDue = new Date(task.due);
+                        const localDueDate = new Date(taskDue.getTime() + taskDue.getTimezoneOffset() * 60000);
+                        const formattedDueDate = localDueDate.toLocaleDateString('en-US');
+                        li.textContent = `Task Name: ${task.title} (Due: ${formattedDueDate})`;
+                    } else{
+                        li.textContent = `Task Name: ${task.title}`;
+                    }
+                    if (task.details != null) {
+                        li.textContent += ` (Details: ${task.details})`;
+                    }
                     const deleteButton = document.createElement("button");
                     deleteButton.textContent = "Delete";
                     deleteButton.addEventListener("click", () => deleteTask(task.id));
@@ -122,14 +139,13 @@
         // Function to comments
         async function fetchComments() {
             try {
-                console.debug("HELLO")
                 const response = await fetch("/list_comments");
                 const comments = await response.json();
                 const commentList = document.getElementById("commentList");
                 commentList.innerHTML = ""; // Clear previous comments
                 comments.forEach(comment => {
                     const li = document.createElement("li");
-                    li.textContent = `${comment.author} (Content: ${comment.content})`;
+                    li.innerHTML = `Task: ${comment.filtered_content} | Author: ${comment.author} | File: ${comment.file} | Link: <a href="${comment.link}" target="_blank">Link</a>`;
                     commentList.appendChild(li);
                 });
             } catch (error) {
