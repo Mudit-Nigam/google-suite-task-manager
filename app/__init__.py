@@ -2,8 +2,8 @@ import json
 import logging
 import os
 import pathlib
-from datetime import date, datetime
 from typing import Dict, Union
+from datetime import datetime
 
 import flask.wrappers as wrappers
 import google.auth.transport.requests
@@ -58,10 +58,13 @@ flow = Flow.from_client_config(
 def add_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
     try:
         task_title = request.form.get("title")
-        task_due = request.form.get("due")
+        task_deadline = request.form.get("deadline")
 
         if not task_title:
             return jsonify({"error": "Task title is required"}), 400
+
+        if not task_deadline:
+            return jsonify({"error": "Task deadline is required"}), 400
 
         if "credentials" not in session or not session["credentials"]:
             return jsonify({"error": "User credentials not found"}), 401
@@ -69,12 +72,10 @@ def add_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
         credentials = Credentials.from_authorized_user_info(json.loads(session["credentials"]))
 
         service = build("tasks", "v1", credentials=credentials)
-        if task_due:
-            task_due = task_due + "T23:59"
-            date = datetime.strptime(task_due, "%Y-%m-%dT%H:%M").isoformat() + "Z"
-            task = {"title": task_title, "due": date}
-        else:
-            task = {"title": task_title, "due": None}  # type: ignore
+
+        task = {"title": task_title}
+        if task_deadline:
+            task["due"] = datetime.strptime(task_deadline, "%Y-%m-%dT%H:%M").isoformat() + "Z"
 
         result = service.tasks().insert(tasklist="@default", body=task).execute()  # type: ignore
         return jsonify({"success": True, "task": result})
@@ -98,12 +99,8 @@ def list_tasks() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
         tasks = tasks_result.get("items", [])  # Extract tasks from response
 
         # Format tasks into a list of dictionaries
-        formatted_tasks = [
-            {"id": task["id"], "title": task["title"], "due": task["due"]}
-            if task.get("due")
-            else {"id": task["id"], "title": task["title"]}
-            for task in tasks
-        ]
+        formatted_tasks = [{"id": task["id"], "title": task["title"]} for task in tasks]
+
         return jsonify(formatted_tasks)
     except Exception as e:
         logging.error("Error listing tasks: %s", e)
@@ -185,6 +182,7 @@ def list_comments() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
         userinfo_service = build("oauth2", "v2", credentials=credentials)
         user_info = userinfo_service.userinfo().get().execute()
         your_email = user_info.get("email")
+        print(f"Fetching comments for {your_email}")
         # Retrieve files from Google Drive API
         all_files = []
         page_token = None
@@ -193,7 +191,7 @@ def list_comments() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
                 service.files()
                 .list(
                     pageSize=100,  # Adjust pageSize as needed
-                    fields="nextPageToken, files(id, name, webViewLink, mimeType)",
+                    fields="nextPageToken, files(id, name, mimeType)",
                     pageToken=page_token,  # type: ignore
                 )
                 .execute()
@@ -222,19 +220,30 @@ def list_comments() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
                     if your_email in comment["content"] and not comment.get("deleted") and not comment.get("resolved")  # type: ignore
                 ]
                 relevant_comments = [
-                    {
-                        "author": comment["author"]["displayName"],  # type: ignore
-                        "filtered_content": comment["content"].replace("@" + your_email, ""),
-                        "file": file["name"],
-                        "link": file["webViewLink"],
-                        "content": comment["content"],
-                    }
+                    {"author": comment["author"]["displayName"], "file": file["name"], "content": comment["content"]}  # type: ignore
                     for comment in relevant_comments
                 ]
                 if relevant_comments:
                     for comment in relevant_comments:
+                        # print(f"- {comment['content']} (Author: {comment['author']})")
                         result.append(comment)
+                else:
+                    print(f"No relevant comments for {file['name']} ({file['id']}).")
+            else:
+                print(f"File type of {file['name']} ({file['id']}) does not support comments.")
+        print(result)
         return jsonify(result)
+
+        """
+        comments_result = service.comments().list().execute()
+        comments = comments_result.get("comments", [])  # Extract comments from response
+        print(comments)
+        # Filter comments assigned to the user
+        assigned_comments = [comment for comment in comments if comment["assignedToMe"]]
+        # Format comments into a list of dictionaries
+        formatted_comments = [{"id": comment["id"], "content": comment["content"]} for comment in assigned_comments]
+        return jsonify(formatted_comments)
+        """
     except Exception as e:
         logging.error("Error listing comments: %s", e)
         return jsonify({"error": "Failed to list comments"}), 500
