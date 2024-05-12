@@ -235,7 +235,7 @@ def list_comments() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
                 ]
                 relevant_comments = [
                     {
-                        "id":comment["id"],
+                        "id": comment["id"],
                         "author": comment["author"]["displayName"],  # type: ignore
                         "filtered_content": comment["content"].replace("@" + your_email, ""),
                         "file": file["name"],
