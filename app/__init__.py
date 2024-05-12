@@ -223,7 +223,7 @@ def list_comments() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
                     service.comments()
                     .list(
                         fileId=file["id"],
-                        fields="comments(author(displayName), content, deleted, resolved)",  # Include 'deleted' and 'resolved' fields
+                        fields="comments(id, author(displayName), content, deleted, resolved)",  # Include 'deleted' and 'resolved' fields
                     )
                     .execute()
                 )
@@ -235,6 +235,7 @@ def list_comments() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
                 ]
                 relevant_comments = [
                     {
+                        "id":comment["id"],
                         "author": comment["author"]["displayName"],  # type: ignore
                         "filtered_content": comment["content"].replace("@" + your_email, ""),
                         "file": file["name"],
