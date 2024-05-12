@@ -12,7 +12,7 @@
     <h1>Add Task</h1>
     <form id="addTaskForm">
         <input type="text" id="taskTitle" name="title" placeholder="Task Title">
-        <input type="datetime-local" id="taskDeadline" name="deadline">
+        <input type="date" id="taskDue" name="due" placeholder="Enter the due date">
         <button type="submit">Add Task</button>
     </form>
     
@@ -32,20 +32,20 @@
         document.getElementById("addTaskForm").addEventListener("submit", function(event) {
             event.preventDefault();
             const taskTitle = document.getElementById("taskTitle").value;
-            addTask(taskTitle);
+            const dtt = document.getElementById('taskDue').value;
+            addTask(taskTitle, dtt);
         });
 
-        async function addTask(title) {
+        async function addTask(title, dtt) {
             try {
                 const response = await fetch("/add_task", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded"
                     },
-                    body: `title=${encodeURIComponent(title)}`
+                    body: `title=${encodeURIComponent(title)}&due=${encodeURIComponent(dtt)}`
                 });
                 const data = await response.json();
-                console.log(data);
                 // Handle response data as needed
             } catch (error) {
                 console.error("Error adding task:", error);
@@ -61,7 +61,14 @@
                 taskList.innerHTML = ""; // Clear previous tasks
                 tasks.forEach(task => {
                     const li = document.createElement("li");
-                    li.textContent = `${task.title} (ID: ${task.id})`;
+                    if (task.due != null) {
+                        const taskDue = new Date(task.due);
+                        const localDueDate = new Date(taskDue.getTime() + taskDue.getTimezoneOffset() * 60000);
+                        const formattedDueDate = localDueDate.toLocaleDateString('en-US');
+                        li.textContent = `Task Name: ${task.title} (Due: ${formattedDueDate})`;
+                    } else{
+                        li.textContent = `Task Name: ${task.title}`;
+                    }
                     const deleteButton = document.createElement("button");
                     deleteButton.textContent = "Delete";
                     deleteButton.addEventListener("click", () => deleteTask(task.id));
@@ -83,7 +90,7 @@
                 commentList.innerHTML = ""; // Clear previous comments
                 comments.forEach(comment => {
                     const li = document.createElement("li");
-                    li.textContent = `${comment.author} (Content: ${comment.content})`;
+                    li.innerHTML = `Task: ${comment.filtered_content} | Author: ${comment.author} | File: ${comment.file} | Author: ${comment.author} | Link: <a href="${comment.link}" target="_blank">Link</a>`;
                     commentList.appendChild(li);
                 });
             } catch (error) {
