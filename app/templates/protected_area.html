@@ -90,7 +90,7 @@
                 commentList.innerHTML = ""; // Clear previous comments
                 comments.forEach(comment => {
                     const li = document.createElement("li");
-                    li.innerHTML = `Task: ${comment.filtered_content} | Author: ${comment.author} | File: ${comment.file} | Author: ${comment.author} | Link: <a href="${comment.link}" target="_blank">Link</a>`;
+                    li.innerHTML = `Task: ${comment.filtered_content} | Author: ${comment.author} | File: ${comment.file} | Link: <a href="${comment.link}" target="_blank">Link</a>`;
                     commentList.appendChild(li);
                 });
             } catch (error) {
