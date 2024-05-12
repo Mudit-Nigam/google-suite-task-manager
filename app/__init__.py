@@ -58,6 +58,7 @@ flow = Flow.from_client_config(
 def add_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
     try:
         task_title = request.form.get("title")
+        task_notes = request.form.get("notes")
         task_due = request.form.get("due")
 
         if not task_title:
@@ -72,9 +73,9 @@ def add_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
         if task_due:
             task_due = task_due + "T23:59"
             date = datetime.strptime(task_due, "%Y-%m-%dT%H:%M").isoformat() + "Z"
-            task = {"title": task_title, "due": date}
+            task = {"title": task_title, "notes": task_notes, "due": date}
         else:
-            task = {"title": task_title, "due": None}  # type: ignore
+            task = {"title": task_title, "notes": task_notes, "due": None}  # type: ignore
 
         result = service.tasks().insert(tasklist="@default", body=task).execute()  # type: ignore
         return jsonify({"success": True, "task": result})
@@ -99,9 +100,9 @@ def list_tasks() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
 
         # Format tasks into a list of dictionaries
         formatted_tasks = [
-            {"id": task["id"], "title": task["title"], "due": task["due"]}
+            {"id": task["id"], "title": task["title"], "notes": task.get("notes"), "due": task["due"]}
             if task.get("due")
-            else {"id": task["id"], "title": task["title"]}
+            else {"id": task["id"], "title": task["title"], "details": task.get("notes")}
             for task in tasks
         ]
         return jsonify(formatted_tasks)
