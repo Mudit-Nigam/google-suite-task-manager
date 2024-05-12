@@ -1,12 +1,80 @@
-<html>
-    <body style="text-align: center;height:100%;background-color: #4285F4;">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-        <h1 style="margin-top: 10%;">
-            Hi !!!<br>Sign In to Google Suite Task Manager
-        </h1>
-        <a href='/login'><button style="margin-top: 5%;"><img src="signin.png" alt="Login with Google"></button></a>
-        <h1 style="margin-top: 12%;">
-            Team UMBREON
-        </h1>
-    </body>
+        .container {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+
+        .login-button {
+            background-color: #ffc700;
+            color: #000000;
+            border: none;
+            padding: 20px 20px;
+            font-size: 1.2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+            .login-button:hover {
+                background-color: #ffc800;
+            }
+
+        img {
+            width: 250px;
+            vertical-align: middle;
+        }
+        .yellow-bar-top {
+            background-color: #ffd700;
+            height: 10px;
+            width: 100%;
+            position: absolute;
+            top: 50px;
+            left: 0;
+        }
+        .yellow-bar-bottom {
+            background-color: #ffd700;
+            height: 10px;
+            width: 100%;
+            position: absolute;
+            bottom: 50px;
+        }
+        .bottom-image {
+            position: absolute;
+            bottom: 0px;
+            left: 95%;
+            transform: translateX(-50%);
+        }
+    </style>
+</head>
+<body>
+    <div class="yellow-bar-top"></div>
+    <div class="container">
+        <h1>Google Suite Task Manager</h1>
+        <a href='/login' class="login-button"><img src="signin.png"></a>
+    </div>
+    <img src="umbreon.png" alt="umbreon" class="bottom-image">
+    <div class="yellow-bar-bottom"></div>
+</body>
 </html>
