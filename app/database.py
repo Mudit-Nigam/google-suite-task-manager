@@ -19,7 +19,11 @@ def get_database():
 # Define a function to add a task to the tasks collection in the database
 def add_task_db(tasks,task_id,task_name, task_details,user_id):
 	task_dict = {"_id":task_id, "title": task_name, "description": task_details, "user":user_id}
-	tasks.insert_one(task_dict)
+	if len(list(tasks.find(task_dict))) == 0:
+		tasks.insert_one(task_dict)
+
+	else:
+		print("task already exists")
 
 # Define a function to delete a task from the tasks collection in the database
 def delete_task_db(tasks, task_id, user_id):
