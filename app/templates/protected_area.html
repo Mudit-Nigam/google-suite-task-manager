@@ -12,7 +12,7 @@
     <h1>Add Task</h1>
     <form id="addTaskForm">
         <input type="text" id="taskTitle" name="title" placeholder="Task Title">
-        <input type="text" id="taskNotes" name="notes" placeholder="Task Details">
+        <input type="text" id="taskDetails" name="details" placeholder="Task Details">
         <input type="date" id="taskDue" name="due" placeholder="Enter the due date">
         <button type="submit">Add Task</button>
     </form>
@@ -32,20 +32,24 @@
     <script>
         document.getElementById("addTaskForm").addEventListener("submit", function(event) {
             event.preventDefault();
-            const taskTitle = document.getElementById("taskTitle").value;
-            const taskNotes = document.getElementById("taskNotes").value;
+            const title = document.getElementById("taskTitle").value;
+            const details = document.getElementById("taskDetails").value;
             const dtt = document.getElementById('taskDue').value;
-            addTask(taskTitle, taskNotes, dtt);
+            addTask(title, details, dtt);
+            // Clearing the input fields
+            taskTitle.value = "";
+            taskDetails.value = "";
+            taskDue.value = "";
         });
 
-        async function addTask(title, notes, dtt) {
+        async function addTask(title, details, dtt) {
             try {
                 const response = await fetch("/add_task", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded"
                     },
-                    body: `title=${encodeURIComponent(title)}&notes=${encodeURIComponent(notes)}&due=${encodeURIComponent(dtt)}`
+                    body: `title=${encodeURIComponent(title)}&details=${encodeURIComponent(details)}&due=${encodeURIComponent(dtt)}`
                 });
                 const data = await response.json();
                 // Handle response data as needed
@@ -71,7 +75,7 @@
                     } else{
                         li.textContent = `Task Name: ${task.title}`;
                     }
-                    if (task.details) {
+                    if (task.details != null) {
                         li.textContent += ` (Details: ${task.details})`;
                     }
                     const deleteButton = document.createElement("button");
@@ -88,7 +92,6 @@
         // Function to comments
         async function fetchComments() {
             try {
-                console.debug("HELLO")
                 const response = await fetch("/list_comments");
                 const comments = await response.json();
                 const commentList = document.getElementById("commentList");

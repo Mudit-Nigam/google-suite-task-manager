@@ -58,7 +58,7 @@ flow = Flow.from_client_config(
 def add_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
     try:
         task_title = request.form.get("title")
-        task_notes = request.form.get("notes")
+        task_details = request.form.get("details")
         task_due = request.form.get("due")
 
         if not task_title:
@@ -73,10 +73,17 @@ def add_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
         if task_due:
             task_due = task_due + "T23:59"
             date = datetime.strptime(task_due, "%Y-%m-%dT%H:%M").isoformat() + "Z"
-            task = {"title": task_title, "notes": task_notes, "due": date}
+            task = (
+                {"title": task_title, "notes": task_details, "due": date}
+                if task_details
+                else {"title": task_title, "notes": None, "due": date}  # type: ignore
+            )
         else:
-            task = {"title": task_title, "notes": task_notes, "due": None}  # type: ignore
-
+            task = (
+                {"title": task_title, "notes": task_details, "due": None}  # type: ignore
+                if task_details
+                else {"title": task_title, "notes": None, "due": None}  # type: ignore
+            )
         result = service.tasks().insert(tasklist="@default", body=task).execute()  # type: ignore
         return jsonify({"success": True, "task": result})
     except Exception as e:
@@ -100,9 +107,13 @@ def list_tasks() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
 
         # Format tasks into a list of dictionaries
         formatted_tasks = [
-            {"id": task["id"], "title": task["title"], "notes": task.get("notes"), "due": task["due"]}
-            if task.get("due")
+            {"id": task["id"], "title": task["title"], "details": task.get("notes"), "due": task["due"]}
+            if task.get("due") and task.get("notes")
             else {"id": task["id"], "title": task["title"], "details": task.get("notes")}
+            if task.get("notes")
+            else {"id": task["id"], "title": task["title"], "due": task.get("due")}
+            if task.get("due")
+            else {"id": task["id"], "title": task["title"]}
             for task in tasks
         ]
         return jsonify(formatted_tasks)
