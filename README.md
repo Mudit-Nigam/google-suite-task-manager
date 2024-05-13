@@ -1,6 +1,6 @@
 # HW1: Technology Template Repository (Python)
 ---
-### Team Umbreon members :
+### Team Umbreon Members
 * Jeevan Vasanthan
 * Jimmy Shong
 * Jordi Del Castillo
@@ -20,7 +20,7 @@ The primary goal of the “Google Suit Task Manager” is to develop an automate
 * Sync and integrate with appropriate Google Suite products, including Google Docs, Sheets, Slides, Gmail, and Google Calendar
 
 ---
-### Installation :
+### Installation
 1. Create a template using this repository
 2. Clone the repository
    ```
@@ -57,8 +57,9 @@ The primary goal of the “Google Suit Task Manager” is to develop an automate
 * Code formatting solution - Ruff
 * Package manager - Python Dependency Management
 * License - MIT
+
 ---
-### Objectives Satisfied :
+### Objectives Satisfied
 :white_check_mark: Template git repo is created <br>
 :white_check_mark: “Hello World” program [main.py](https://github.com/OpenSource-Spring2024/python-template/blob/master/src/main.py)<br> 
 :white_check_mark: A test in the repo asserting 2 + 2 == 4 [test_1.py](https://github.com/OpenSource-Spring2024/python-template/blob/master/tests/test_1.py)<br>
@@ -71,7 +72,8 @@ The primary goal of the “Google Suit Task Manager” is to develop an automate
  
 
 
-
+---
+### Demo Video
 https://github.com/nyuoss/google-suite-task-manager/assets/33367258/565859d7-d6f3-4d27-af3d-47eb7d99d11c
 
 
