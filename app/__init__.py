@@ -99,6 +99,46 @@ def add_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
         return jsonify({"error": "Failed to add task"}), 500
 
 
+@app.route("/add_task_no_mongo", methods=["POST"])
+def add_task_no_mongo() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
+    try:
+        task_title = request.form.get("title")
+        task_notes = request.form.get("notes")
+        task_due = request.form.get("due")
+
+        if not task_title:
+            return jsonify({"error": "Task title is required"}), 400
+
+        if "credentials" not in session or not session["credentials"]:
+            return jsonify({"error": "User credentials not found"}), 401
+
+        credentials = Credentials.from_authorized_user_info(json.loads(session["credentials"]))
+
+        service = build("tasks", "v1", credentials=credentials)
+        userinfo_service = build("oauth2", "v2", credentials=credentials)
+        userinfo_service.userinfo().get().execute()
+        if task_due:
+            task_due = task_due + "T23:59"
+            date = datetime.strptime(task_due, "%Y-%m-%dT%H:%M").isoformat() + "Z"
+            task = (
+                {"title": task_title, "notes": task_notes, "due": date}
+                if task_notes
+                else {"title": task_title, "notes": None, "due": date}  # type: ignore
+            )
+        else:
+            task = (
+                {"title": task_title, "notes": task_notes, "due": None}  # type: ignore
+                if task_notes
+                else {"title": task_title, "notes": None, "due": None}  # type: ignore
+            )
+        result = service.tasks().insert(tasklist="@default", body=task).execute()  # type: ignore
+        print(result)
+        return jsonify({"success": True, "task": result})
+    except Exception as e:
+        logging.error("Error adding task: %s", e)
+        return jsonify({"error": "Failed to add task"}), 500
+
+
 @app.route("/list_tasks")
 def list_tasks() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
     try:
@@ -117,6 +157,27 @@ def list_tasks() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
         tasks_result = service.tasks().list(tasklist="@default").execute()
         tasks = tasks_result.get("items", [])
         db.update_task_db(mydb, tasks, your_email)
+        # Extract tasks from response
+        return jsonify(tasks)
+    except Exception as e:
+        logging.error("Error listing tasks: %s", e)
+        return jsonify({"error": "Failed to list tasks"}), 500
+
+
+@app.route("/list_tasks_no_mongo")
+def list_tasks_no_mongo() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
+    try:
+        if "credentials" not in session:
+            return jsonify({"error": "User credentials not found"}), 401
+
+        credentials = Credentials.from_authorized_user_info(json.loads(session["credentials"]))
+
+        service = build("tasks", "v1", credentials=credentials)
+        userinfo_service = build("oauth2", "v2", credentials=credentials)
+        userinfo_service.userinfo().get().execute()
+        # Example: Retrieve tasks from Google Tasks API
+        tasks_result = service.tasks().list(tasklist="@default").execute()
+        tasks = tasks_result.get("items", [])
         # Extract tasks from response
         return jsonify(tasks)
     except Exception as e:
@@ -143,6 +204,28 @@ def delete_task() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
         your_email = user_info.get("email")
         service.tasks().delete(tasklist="@default", task=task_id).execute()
         db.delete_task_db(mydb, task_id, your_email)
+        return jsonify({"success": True})
+    except Exception as e:
+        logging.error("Error deleting task: %s", e)
+        return jsonify({"error": "Failed to delete task"}), 500
+
+
+@app.route("/delete_task_no_mongo", methods=["POST"])
+def delete_task_no_mongo() -> Union[wrappers.Response, tuple[wrappers.Response, int]]:
+    try:
+        task_id = request.form.get("id")
+        if not task_id:
+            return jsonify({"error": "Task ID is required"}), 400
+
+        if "credentials" not in session:
+            return jsonify({"error": "User credentials not found"}), 401
+
+        credentials = Credentials.from_authorized_user_info(json.loads(session["credentials"]))
+
+        service = build("tasks", "v1", credentials=credentials)
+        userinfo_service = build("oauth2", "v2", credentials=credentials)
+        userinfo_service.userinfo().get().execute()
+        service.tasks().delete(tasklist="@default", task=task_id).execute()
         return jsonify({"success": True})
     except Exception as e:
         logging.error("Error deleting task: %s", e)

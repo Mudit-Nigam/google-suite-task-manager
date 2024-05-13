@@ -16,7 +16,7 @@ def client() -> Generator[Any, Any, Any]:
 
 
 def test_add_task_no_title(client: FlaskClient) -> None:
-    response = client.post("/add_task", data={})
+    response = client.post("/add_task_no_mongo", data={})
     assert response.status_code == 400
     assert "Task title is required" in response.get_json()["error"]
 
@@ -24,7 +24,7 @@ def test_add_task_no_title(client: FlaskClient) -> None:
 def test_add_task_no_credentials(client: FlaskClient) -> None:
     with client.session_transaction() as session:
         session.pop("credentials", None)  # This will ensure credentials are not set
-    response = client.post("/add_task", data={"title": "New Task"})
+    response = client.post("/add_task_no_mongo", data={"title": "New Task"})
     assert response.status_code == 401
     assert "User credentials not found" in response.get_json()["error"]
 
@@ -64,7 +64,7 @@ def test_add_task_successful(client: FlaskClient) -> None:
         with client.session_transaction() as session:
             session["credentials"] = fake_credentials
         # Post request with a valid title
-        response = client.post("/add_task", data={"title": "New Task"})
+        response = client.post("/add_task_no_mongo", data={"title": "New Task"})
 
         # Assertions to verify behavior
         assert response.status_code == 200
@@ -82,13 +82,13 @@ def test_add_task_successful(client: FlaskClient) -> None:
 def test_delete_task_no_id(client: FlaskClient) -> None:
     with client.session_transaction() as session:
         session["credentials"] = json.dumps({"fake": "credentials"})
-    response = client.post("/delete_task", data={})  # No 'id' provided
+    response = client.post("/delete_task_no_mongo", data={})  # No 'id' provided
     assert response.status_code == 400
     assert "Task ID is required" in response.get_json()["error"]
 
 
 def test_delete_task_no_credentials(client: FlaskClient) -> None:
-    response = client.post("/delete_task", data={"id": "123"})
+    response = client.post("/delete_task_no_mongo", data={"id": "123"})
     assert response.status_code == 401
     assert "User credentials not found" in response.get_json()["error"]
 
@@ -130,7 +130,7 @@ def test_delete_task_successful(client: FlaskClient) -> None:
             session["credentials"] = fake_credentials
 
         # Post request to delete a task by ID
-        response = client.post("/delete_task", data={"id": "123"})
+        response = client.post("/delete_task_no_mongo", data={"id": "123"})
         # Assertions to verify behavior
         assert response.status_code == 200
         assert response.get_json() == {"success": True}
@@ -143,7 +143,7 @@ def test_delete_task_successful(client: FlaskClient) -> None:
 
 
 def test_list_tasks_no_credentials(client: FlaskClient) -> None:
-    response = client.get("/list_tasks")
+    response = client.get("/list_tasks_no_mongo")
     assert response.status_code == 401
     assert "User credentials not found" in response.get_json()["error"]
 
@@ -182,7 +182,7 @@ def test_list_tasks_successful(client: FlaskClient) -> None:
         with client.session_transaction() as session:
             session["credentials"] = fake_credentials
 
-        response = client.get("/list_tasks")
+        response = client.get("/list_tasks_no_mongo")
         assert response.status_code == 200
         assert response.get_json() == [{"id": "1", "title": "Task One"}, {"id": "2", "title": "Task Two"}]
 
