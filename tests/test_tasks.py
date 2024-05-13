@@ -3,8 +3,9 @@ from typing import Any, Generator
 from unittest.mock import ANY, MagicMock, patch
 
 import pytest
-from app import app
 from flask.testing import FlaskClient
+
+from app import app
 
 
 @pytest.fixture
