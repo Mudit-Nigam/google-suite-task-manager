@@ -8,6 +8,18 @@
 * Savitha Nair
 * Tahmid Asif
 ---
+### About
+The primary goal of the “Google Suit Task Manager” is to develop an automated system that can not only efficiently sync with the preexisting Google Suite products but also identify, aggregate, and display tasks across the Google Suite. Furthermore, the main objective is to provide a platform that will allow users to perform all basic task management actions currently available in Google Tasks, including creating tasks, deadlines, and notifications, as well as consolidating these scattered tasks into a consistent, well-defined format, which will increase user productivity and task management efficiency.
+
+---
+### Features
+* User login and view account
+* Aggregate and display all tasks on the task dashboard
+* Create tasks and respective deadlines
+* View tasks linked to comments/mentions across Google Suite Products
+* Sync and integrate with appropriate Google Suite products, including Google Docs, Sheets, Slides, Gmail, and Google Calendar
+
+---
 ### Installation :
 1. Create a template using this repository
 2. Clone the repository
@@ -36,7 +48,7 @@
    pdm run flask run
    ```
 ---
-### Features :
+### Technical Specifications
 * Programming language - Python
 * Toolchain / runtime environment - Python 3.11
 * Testing framework is selected - pytest
