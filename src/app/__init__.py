@@ -8,6 +8,7 @@ from typing import Dict, Union
 import flask.wrappers as wrappers
 import google.auth.transport.requests
 import requests
+from backend import database as db
 from dotenv import load_dotenv
 from flask import Flask, abort, jsonify, redirect, render_template, request, session
 from google.oauth2 import id_token
@@ -15,8 +16,6 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow  # type: ignore
 from googleapiclient.discovery import build
 from werkzeug.wrappers import Response
-
-from .backend import database as db
 
 
 load_dotenv()
