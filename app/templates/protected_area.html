@@ -4,30 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tasks</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: left;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            text-align: left;
+        }
+        .nav-button {
+            background-color: #ffc700;
+            color: #000000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 10px;
+            display: inline-block;
+        }
+        .nav-button:hover {
+            background-color: #ffcb00;
+        }
+        .yellow-bar-top, .yellow-bar-bottom {
+            background-color: #ffd700;
+            height: 10px;
+            width: 100%;
+            position: absolute;
+        }
+        .yellow-bar-top {
+            top: 0;
+        }
+        .yellow-bar-bottom {
+            bottom: 0;
+        }
+        #taskList {
+            list-style-type: none;  /* No bullets */
+        }
+    </style>
 </head>
 <body>
-    <h1>Tasks</h1>
-    
-    
-    <h1>Add Task</h1>
-    <form id="addTaskForm">
-        <input type="text" id="taskTitle" name="title" placeholder="Task Title">
-        <input type="text" id="taskDetails" name="details" placeholder="Task Details">
-        <input type="date" id="taskDue" name="due" placeholder="Enter the due date">
-        <button type="submit">Add Task</button>
-    </form>
-    
-    <h1>Fetch Tasks</h1>
-    <button id="fetchTasksButton">Fetch Tasks</button>
+    <div class="yellow-bar-top"></div>
+    <div class="container">
+        <h1>Tasks</h1>
+        
+        
+        <h1>Add Task</h1>
+        <form id="addTaskForm">
+            <input type="text" id="taskTitle" name="title" placeholder="Task Title">
+            <input type="text" id="taskDetails" name="details" placeholder="Task Details">
+            <input type="date" id="taskDue" name="due" placeholder="Enter the due date">
+            <button type="submit">Add Task</button>
+        </form>
+        
+        <h1>Fetch Tasks</h1>
+        <button id="fetchTasksButton">Fetch Tasks</button>
 
-    <h1>Delete Tasks</h1>
-    <ul id="taskList"></ul>
+        <h1>Task List</h1>
+        <p id="taskList"></p>
 
-    <h1>Fetch Comments</h1>
-    <button id="fetchCommentsButton">Fetch Comments</button>
+        <h1>Fetch Comments</h1>
+        <button id="fetchCommentsButton">Fetch Comments</button>
 
-    <h1>Comment List</h1>
-    <ul id="commentList"></ul>
+        <h1>Comment List</h1>
+        <ul id="commentList"></ul>
+    </div>
+    <div class="yellow-bar-bottom"></div>
 
     <script>
         document.getElementById("addTaskForm").addEventListener("submit", function(event) {
