@@ -1,4 +1,4 @@
-# HW1: Technology Template Repository (Python)
+# Google Suite Task Manager
 ---
 ### Team Umbreon Members
 * Jeevan Vasanthan
