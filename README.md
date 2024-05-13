@@ -18,66 +18,81 @@ The primary goal of the “Google Suit Task Manager” is to develop an automate
 * Create tasks and respective deadlines
 * View tasks linked to comments/mentions across Google Suite Products
 * Sync and integrate with appropriate Google Suite products, including Google Docs, Sheets, Slides, Gmail, and Google Calendar
+---
+### Demo Video
+https://github.com/nyuoss/google-suite-task-manager/assets/33367258/565859d7-d6f3-4d27-af3d-47eb7d99d11c
 
 ---
 ### Installation
 1. Create a template using this repository
 2. Clone the repository
-   ```
-   git clone https://github.com/OpenSource-Spring2024/python-template.git
-   ```
-3. Install dependencies using pdm
-   ```
-   pdm install
-   ```
-4. Run unit tests using pytest
-   ```
-   pdm run pytest
-   ```
-5. Perform static analysis using mypy
-   ```
-   pdm run mypy .
-   ```
-6. Perform code formatting using Ruff
-   ```
-   pdm run ruff check .
-   pdm run ruff format .
-   ```
-7. Run app
-   ```
-   pdm run flask run
-   ```
+```
+git clone https://github.com/OpenSource-Spring2024/python-template.git
+```
+3. Create a new Google API project at  https://console.cloud.google.com/.
+4. Enable Google Drive API and Google Tasks API
+5. Configure Oauth by adding your emails as a test user
+6. Get credentials by creating a new OAuth 2.0 Client ID, and make sure your redirect URIs includes http://127.0.0.1:5000/callback.
+7. Create a secret key.
+8. Configure .env file in app directory. 
+```
+REACT_APP_CLIENT_ID="Client ID"
+REACT_APP_CLIENT_SECRET="Client secret"
+```
+9. Install dependencies using pdm
+```
+pdm install
+```
+10. Turn on your MongoDB service, make sure it configured to localhost:27017.
+11.  Run app
+```
+pdm run flask run
+```
+12. Click on the link created by Flask or visit 127.0.0.1:5000
+13. Press the sign-in with Google login button and log in using a valid Google account.
+14. If this is is your first time. you will asked for  additional access to your Google Account. Check the Select All.
+15. Start using the web app!
 ---
-### Technical Specifications
-* Programming language - Python
-* Toolchain / runtime environment - Python 3.11
-* Testing framework is selected - pytest
-* Continuous integration solution - CircleCI
-* Static analysis solution - mypy
-* Code formatting solution - Ruff
-* Package manager - Python Dependency Management
-* License - MIT
+## Usage Instructions
+   - On Tasks homepage users can perform all basic task management actions available in Google Tasks, including creating, fetching and deleting tasks, add deadlines, and notifications and can sync and integrate with appropriate Google Suite products, like Google Docs.
+   - To add tasks, enter task details and the click 'Add tasks'.
+   - To aggregate and display all the tasks currently in Google Tasks, click 'Fetch tasks'.
+   - To remove a task from Google Tasks, simply click on the "Delete" button located adjacent to the task.
+   - To aggregate and display all the comments you are tagged in, click 'Fetch Comments'.
 
----
-### Objectives Satisfied
-:white_check_mark: Template git repo is created <br>
-:white_check_mark: “Hello World” program [main.py](https://github.com/OpenSource-Spring2024/python-template/blob/master/src/main.py)<br> 
-:white_check_mark: A test in the repo asserting 2 + 2 == 4 [test_1.py](https://github.com/OpenSource-Spring2024/python-template/blob/master/tests/test_1.py)<br>
-:white_check_mark: A Circle CI pipeline that executes the test [config.yml](https://github.com/OpenSource-Spring2024/python-template/blob/master/.circleci/config.yml)<br>
-:white_check_mark: A comprehensive README.md file <br>
-:white_check_mark: An appropriate .gitignore [.gitignore](https://github.com/OpenSource-Spring2024/python-template/blob/master/.gitignore)<br>
-:white_check_mark: An appropriate license [MIT License](https://github.com/OpenSource-Spring2024/python-template/blob/master/LICENSE)<br>
-:white_check_mark: Created two components [backend](https://github.com/OpenSource-Spring2024/python-template/tree/master/src/backend) and [hw1](https://github.com/OpenSource-Spring2024/python-template/tree/master/src/hw1) that interact with each other.<br>
-:white_check_mark: Created an issue and pull request template.<br>
- 
+## Contribution Guidelines
 
+All contributions, bug reports, bug fixes, documentation improvements, enhancements, and ideas are welcome.
 
----
-### Demo Video
-https://github.com/nyuoss/google-suite-task-manager/assets/33367258/565859d7-d6f3-4d27-af3d-47eb7d99d11c
+### Reporting Bugs
+- We have multiple GitHub Issues templates, use those to report bugs.
+- Before submitting a bug report, please look through old issues to ensure there is no preexisting solution.
+- Provide clear steps to reproduce the bugs, and expected vs actual behavior.
 
-
-
-
-
-
+### New Features
+- Please create a branch from master or fork your own repository
+- Any help with managing issues and PRs is very appreciated!
+- Write good commit messages.
+- There are no strict rules for the code style, but try to follow the patterns in the code (indentation, spaces, etc.). Vertical alignment makes things more readable and easier to batch edit
+- Before submitting a PR, please run the unit tests, static type checkers, and code linters.
+  - Run unit tests using pytest
+      ```
+      pdm run pytest
+      ```
+  - Perform static analysis using mypy
+      ```
+      pdm run mypy .
+      ```
+  - Perform code formatting using Ruff
+      ```
+      pdm run ruff check .
+      pdm run ruff format .
+      ```
+- Add all new packages into pdm.
+```
+pdm add <package name>
+```
+- Also update requirements.txt to ensure circleci completes
+```
+pdm export -o requirements.txt --without-hashes
+```
