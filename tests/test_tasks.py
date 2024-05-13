@@ -44,20 +44,25 @@ def test_add_task_successful(client: FlaskClient) -> None:
 
     # Mock the Google API service
     with patch("app.build") as mock_build:
-        # Setup a proper return structure for the mocked method calls
         mock_service = MagicMock()
+        mock_userinfo_service = MagicMock()
         mock_tasks = MagicMock()
         mock_insert = MagicMock()
-        # Setup chain of method calls
-        mock_build.return_value = mock_service
+        # Setup chain of method calls for tasks and userinfo
+        mock_build.side_effect = (
+            lambda service_name, version, credentials: mock_userinfo_service
+            if service_name == "oauth2"
+            else mock_service
+        )
         mock_service.tasks.return_value = mock_tasks
         mock_tasks.insert.return_value = mock_insert
-        mock_insert.execute.return_value = {"id": "123", "title": "New Task"}  # Correctly structured dictionary
-
+        mock_insert.execute.return_value = {"id": "123", "title": "New Task"}
+        mock_userinfo_service.userinfo.return_value.get.return_value.execute.return_value = {
+            "email": "test@example.com"
+        }
         # Set up session with valid credentials
         with client.session_transaction() as session:
             session["credentials"] = fake_credentials
-
         # Post request with a valid title
         response = client.post("/add_task", data={"title": "New Task"})
 
@@ -66,7 +71,8 @@ def test_add_task_successful(client: FlaskClient) -> None:
         assert response.get_json() == {"success": True, "task": {"id": "123", "title": "New Task"}}
 
         # Verify that the API was called as expected
-        mock_build.assert_called_once_with("tasks", "v1", credentials=ANY)
+        mock_build.assert_any_call("tasks", "v1", credentials=ANY)
+        mock_build.assert_any_call("oauth2", "v2", credentials=ANY)
         mock_tasks.insert.assert_called_once_with(
             tasklist="@default", body={"title": "New Task", "notes": None, "due": None}
         )
@@ -99,23 +105,41 @@ def test_delete_task_successful(client: FlaskClient) -> None:
             "scopes": ["https://www.googleapis.com/auth/tasks"],
         }
     )
+
     with patch("app.build") as mock_build:
         mock_service = MagicMock()
+        mock_userinfo_service = MagicMock()
         mock_tasks = MagicMock()
         mock_delete = MagicMock()
 
-        mock_build.return_value = mock_service
+        # Setup chain of method calls for tasks and userinfo
+        mock_build.side_effect = (
+            lambda service_name, version, credentials: mock_userinfo_service
+            if service_name == "oauth2"
+            else mock_service
+        )
         mock_service.tasks.return_value = mock_tasks
         mock_tasks.delete.return_value = mock_delete
         mock_delete.execute.return_value = None  # Google API returns None on successful deletion
+        mock_userinfo_service.userinfo.return_value.get.return_value.execute.return_value = {
+            "email": "test@example.com"
+        }
 
         # Setup session with valid credentials
         with client.session_transaction() as session:
             session["credentials"] = fake_credentials
 
+        # Post request to delete a task by ID
         response = client.post("/delete_task", data={"id": "123"})
+        # Assertions to verify behavior
         assert response.status_code == 200
         assert response.get_json() == {"success": True}
+
+        # Verify that the API was called as expected
+        mock_build.assert_any_call("tasks", "v1", credentials=ANY)
+        mock_build.assert_any_call("oauth2", "v2", credentials=ANY)
+        mock_tasks.delete.assert_called_once_with(tasklist="@default", task="123")
+        mock_delete.execute.assert_called_once()
 
 
 def test_list_tasks_no_credentials(client: FlaskClient) -> None:
@@ -136,16 +160,24 @@ def test_list_tasks_successful(client: FlaskClient) -> None:
         }
     )
     mock_tasks_list = {"items": [{"id": "1", "title": "Task One"}, {"id": "2", "title": "Task Two"}]}
+    user_email_mock = {"email": "user@example.com"}
 
     with patch("app.build") as mock_build:
         mock_service = MagicMock()
+        mock_userinfo_service = MagicMock()
         mock_tasks = MagicMock()
         mock_list = MagicMock()
 
-        mock_build.return_value = mock_service
+        # Setup chain of method calls for tasks and userinfo
+        mock_build.side_effect = (
+            lambda service_name, version, credentials: mock_userinfo_service
+            if service_name == "oauth2"
+            else mock_service
+        )
         mock_service.tasks.return_value = mock_tasks
         mock_tasks.list.return_value = mock_list
         mock_list.execute.return_value = mock_tasks_list
+        mock_userinfo_service.userinfo.return_value.get.return_value.execute.return_value = user_email_mock
 
         with client.session_transaction() as session:
             session["credentials"] = fake_credentials
@@ -153,3 +185,6 @@ def test_list_tasks_successful(client: FlaskClient) -> None:
         response = client.get("/list_tasks")
         assert response.status_code == 200
         assert response.get_json() == [{"id": "1", "title": "Task One"}, {"id": "2", "title": "Task Two"}]
+
+        # Ensure user info service was called correctly
+        mock_userinfo_service.userinfo.assert_called_once()
